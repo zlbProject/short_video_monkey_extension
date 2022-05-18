@@ -168,7 +168,7 @@
             //分享页视频
             btnShare = document.getElementsByClassName('Z1DFGRDj')
             if (btnShare.length == 0) {
-                console.log('未找到分享按钮，1秒后将重新查找！');
+                // console.log('未找到分享按钮，1秒后将重新查找！');
                 return;
             }
             btn.style.cssText = "padding-left: 10px;";

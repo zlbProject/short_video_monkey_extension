@@ -116,7 +116,7 @@
                     let videoUrl = decodeURI('https:' + sourceNodes[i].getAttribute("src"));
                     GM_xmlhttpRequest(getRequest(videoUrl, videoName, successCall));
                 } catch (error) {
-                    showTipError('未知错误，请重试！');
+                    // showTipError('未知错误，请重试！');
                     console.error(error);
                 }
             }

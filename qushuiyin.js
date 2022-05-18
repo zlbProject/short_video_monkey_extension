@@ -22,6 +22,22 @@
 // ==/UserScript==
 
 (function() {
+    let showTipErrorSwal = function(err) {
+        showSwal(err, { icon: 'error' });
+    }
+
+    const divTips = document.createElement('div');
+    divTips.id = "divTips";
+
+    let showSwal = function(content, option) {
+        divTips.innerHTML = content;
+        option.content = divTips;
+        if (!option.hasOwnProperty('button')) {
+            option.button = '我知道了'
+        }
+        swal(option);
+    }
+
     //是否抖音视频页
     let isDouyinPage = function() {
         let url = location.href;
@@ -58,15 +74,25 @@
         return videoUrl;
     }
 
+    var videoDownloadNum = 0;
+
+    let successCall = function(videoUrl, videoName) {
+        if (videoUrl == null) {
+            videoUrl = getVideoUrl();
+        }
+        // console.log(videoUrl);
+        if (videoDownloadNum == 0) {
+            GM_download({ url: videoUrl, name: videoName + '.mp4' });
+            videoDownloadNum++;
+        }
+    }
+
     let initButtonEvent = function() {
         console.log('initButtonEvent初始化按钮事件');
         if (isDouyinPage()) {
+            videoDownloadNum = 0;
             let videoNode = document.getElementsByTagName("video");
             let index = videoNode.length == 1 ? 0 : videoNode.length - 2;
-            let videoUrl = decodeURI('https:' + videoNode[index].getElementsByTagName("source")[0].getAttribute("src"));
-            if (videoUrl == null) {
-                videoUrl = getVideoUrl();
-            }
             let spanNode = document.getElementsByClassName("npIvCX5K")[index].childNodes[1];
             let videoName = "";
             for (let i = 0; i < spanNode.childNodes.length; i++) {
@@ -75,8 +101,53 @@
                     videoName = videoName + childNode.textContent;
                 }
             }
-            GM_download({ url: videoUrl, name: videoName + '.mp4' });
-            // console.log(videoUrl);
+            if (videoName.trim().length == 0) {
+                let accountNameSpanNode = document.getElementsByClassName("account-name")[index].childNodes[0];
+                for (let i = 0; i < accountNameSpanNode.childNodes.length; i++) {
+                    let childNode = accountNameSpanNode.children[i];
+                    if (childNode != undefined) {
+                        videoName = videoName + childNode.textContent;
+                    }
+                }
+            }
+            let sourceNodes = videoNode[index].getElementsByTagName("source");
+            for (let i = 0; i < sourceNodes.length; i++) {
+                try {
+                    let videoUrl = decodeURI('https:' + sourceNodes[i].getAttribute("src"));
+                    GM_xmlhttpRequest(getRequest(videoUrl, videoName, successCall));
+                } catch (error) {
+                    showTipError('未知错误，请重试！');
+                    console.error(error);
+                }
+            }
+
+
+
+        }
+    };
+
+    let getRequest = function(url, videoName, call) {
+        return {
+            method: 'GET',
+            timeout: 30000, // 30秒超时
+            url: url,
+            onload: function(res) {
+                // console.log('请求返回：', res);
+                if (res.status === 200) {
+                    call(url, videoName);
+                } else {
+                    // showTipErrorSwal('视频链接失效！')
+                    console.error(res);
+                }
+            },
+            ontimeout: (res) => {
+                // showTipErrorSwal('请求超时，请重试！');
+                console.error(res);
+            },
+            onerror: (res) => {
+                // showTipErrorSwal('请求发生错误，请重试！');
+                console.error(res);
+            }
         }
     };
 

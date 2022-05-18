@@ -1,1 +1,2 @@
-# short_video_monkey_extension
+# 去短视频水印工具
+- 支持抖音视频下载

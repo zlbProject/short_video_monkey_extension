@@ -48,6 +48,7 @@
         }
     };
 
+    //根据json提取链接
     let getVideoUrl = function() {
         let RENDER_DATA = document.getElementById("RENDER_DATA");
         if (RENDER_DATA == null) {
@@ -75,7 +76,7 @@
     }
 
     var videoDownloadNum = 0;
-
+    //按钮点击回调事件
     let successCall = function(videoUrl, videoName) {
         if (videoUrl == null) {
             videoUrl = getVideoUrl();
@@ -87,8 +88,9 @@
         }
     }
 
-    let initButtonEvent = function() {
-        console.log('initButtonEvent初始化按钮事件');
+    //按钮点击事件
+    let btnButtonEvent = function() {
+        console.log('btnButtonEvent点击按钮事件');
         if (isDouyinPage()) {
             videoDownloadNum = 0;
             let videoNode = document.getElementsByTagName("video");
@@ -126,6 +128,16 @@
         }
     };
 
+    //多按钮点击事件
+    let btnsButtonEvent = function() {
+        console.log('btnsButtonEvent点击按钮事件');
+        if (isDouyinPage()) {
+            let shareUrl = this.getAttribute("shareUrl");
+            console.log(shareUrl);
+        }
+    };
+
+    //head请求
     let headRequest = function(url, videoName, call) {
         return {
             method: 'HEAD',
@@ -159,9 +171,39 @@
             return;
         }
 
-        // 创建按钮 START
-        let btn = document.createElement('a');
+        let btnDownload = {
+            title: '点击下载视频',
+            html: function() {
+                return `<img height="26" width="26" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAABmJLR0QA/wD/AP+gvaeTAAAB10lEQVRYhe2Yv0sCYRjHnyuVoyIC/4CwH1OrKbdJDQ4hDi0NbTU0RuIPKKvBKE2loUHQ/0FRF3WsqDOoCF1UcIqWCvP0NC69hlI0Ss97LxR6P9sdPN/nw3vDPe8DMOAQUoTojy75n97HbBRyvgw1oIFvQ9v2vOGjJckdkiTlD8GCqGBBVLAgKlgQFSyIChZEBQuiggVRETRR6w+vTEDw7l7Df7sKAADwBOzErdRBtwzBd4alY9o6RsrstuW50YkRhdCyNoosB85gqlxk391Rs3ZfSM2w0PBsInAxubhev848UepZpYKUCy5tk2PKNU/UIkyuJ0EAgGzcfy5Gsshy4AylS0y55o1YNHu99OztGL4kVQvrfDL3RKlnlPJukkyFA1coxZZEyIkSBADIJPznU7o1SOaeO0oyFQ6cwRTLsDVv2KzZFdNLlOCnZOBMpVuDZO6Fmp9WyklFexRT4cAVTLNMteYNmzR2sX2QMXro7ZXTm/LdwxufL9T5fKHO3z++8au+25LBQzv6JtZKq6TUcpLsZgAADB7aMU7KNwkCiNcqdxLZ0m5LlS0ZRjd9YHTTXf8OGEwLBEDnqaOfxGwU0Ry3vi8g+01jATrwA+vACzY/sVQ75X/HB6W6vNjikAp7AAAAAElFTkSuQmCC"/>`;
+            }
+        }
 
+        //列表增加下载按钮
+        let btnDownloadClass = "btnClickDownloadClass";
+        let btns = document.createElement('a');
+        btns.className = btnDownloadClass;
+        btns.title = btnDownload.title;
+        btns.innerHTML = btnDownload.html();
+        //分享视频详情页推荐列表
+        let ulNodes = document.getElementsByClassName("r3zuuG3C");
+        if (ulNodes.length != 0) {
+            let liNodes = ulNodes[0].getElementsByTagName("ul")[0].childNodes;
+            for (let i = 0; i < liNodes.length; i++) {
+                //分享链接
+                let shareUrl = "https:" + liNodes[i].getElementsByClassName("qtFkFs6t")[0].getAttribute("href");
+                let divNode = liNodes[i].getElementsByClassName("ZOcWkFRO")[0];
+                // 添加按钮
+                let spanNode = liNodes[i].getElementsByClassName("L91yyTX4")[0];
+                if (divNode.getElementsByClassName(btnDownloadClass).length == 0) {
+                    btns.setAttribute("shareUrl", shareUrl);
+                    $(spanNode).after(btns.outerHTML);
+                    $(divNode.getElementsByClassName(btnDownloadClass)).click(btnsButtonEvent);
+                }
+            }
+        }
+
+
+        let btn = document.createElement('a');
         //列表页视频
         let btnShare = document.getElementsByClassName('OFZHdvpl')
         if (btnShare.length == 0) {
@@ -171,34 +213,19 @@
                 // console.log('未找到分享按钮，1秒后将重新查找！');
                 return;
             }
-            btn.style.cssText = "padding-left: 10px;";
+            btn.style.cssText = "padding-top: 4px;";
         }
 
-        let btnDownload = {
-            id: 'btnClickDownload',
-            title: '点击下载视频',
-            html: function() {
-                return `<img height="26" width="26" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAABmJLR0QA/wD/AP+gvaeTAAAB10lEQVRYhe2Yv0sCYRjHnyuVoyIC/4CwH1OrKbdJDQ4hDi0NbTU0RuIPKKvBKE2loUHQ/0FRF3WsqDOoCF1UcIqWCvP0NC69hlI0Ss97LxR6P9sdPN/nw3vDPe8DMOAQUoTojy75n97HbBRyvgw1oIFvQ9v2vOGjJckdkiTlD8GCqGBBVLAgKlgQFSyIChZEBQuiggVRETRR6w+vTEDw7l7Df7sKAADwBOzErdRBtwzBd4alY9o6RsrstuW50YkRhdCyNoosB85gqlxk391Rs3ZfSM2w0PBsInAxubhev848UepZpYKUCy5tk2PKNU/UIkyuJ0EAgGzcfy5Gsshy4AylS0y55o1YNHu99OztGL4kVQvrfDL3RKlnlPJukkyFA1coxZZEyIkSBADIJPznU7o1SOaeO0oyFQ6cwRTLsDVv2KzZFdNLlOCnZOBMpVuDZO6Fmp9WyklFexRT4cAVTLNMteYNmzR2sX2QMXro7ZXTm/LdwxufL9T5fKHO3z++8au+25LBQzv6JtZKq6TUcpLsZgAADB7aMU7KNwkCiNcqdxLZ0m5LlS0ZRjd9YHTTXf8OGEwLBEDnqaOfxGwU0Ry3vi8g+01jATrwA+vACzY/sVQ75X/HB6W6vNjikAp7AAAAAElFTkSuQmCC"/>`;
-            }
+        let btnDownloadId = "btnClickDownloadId";
+        let button = document.getElementById(btnDownloadId);
+        if (button == null) {
+            btn.id = btnDownloadId;
+            btn.title = btnDownload.title;
+            btn.innerHTML = btnDownload.html();
+            // 添加按钮
+            $(btnShare[0]).after(btn.outerHTML);
+            $(document.getElementById(btnDownloadId)).click(btnButtonEvent);
         }
-
-        let button = document.getElementById(btnDownload.id);
-        if (button != null) {
-            return;
-        }
-
-        btn.id = btnDownload.id;
-        btn.title = btnDownload.title;
-        btn.innerHTML = btnDownload.html();
-        btn.addEventListener('click', function(e) {
-            initButtonEvent();
-            e.preventDefault();
-        });
-        // 创建按钮 END
-
-        // 添加按钮 START
-        btnShare[0].appendChild(btn);
-        // 添加按钮 END
     }
 
     setInterval(function() {
